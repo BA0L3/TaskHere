@@ -1,7 +1,10 @@
-# | TasksHere | ![1792077820787](Datas/TaskHere.png)  |
-| --------- | ------------------------------------- |
+# TasksHere
 
+![app](Datas/TaskHere.png)
 
+Review:
+
+![rv1](image/README/1792078415206.png)
 
 TasksHere is a task manager (actually it s"Real-Life Works" Manager) for Windows 10 and Windows 11. It provides both a
 command-line interface (CLI) and a graphical interface (GUI), and automatically
@@ -65,6 +68,5 @@ The application stores task data in `Datas/Tasks.json` and settings in
 `Datas/settings.json`. Logs are written to `Datas/logs/taskshere.log`. Keep the
 `Datas` directory alongside the application files so the image, icon, and saved
 data remain available.
-
 
 Created & Developed by: BA0L3 (Lê Nguyễn Gia Bảo)

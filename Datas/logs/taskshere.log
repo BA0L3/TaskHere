@@ -84,3 +84,4 @@ KeyError: 'credits'
 2026-10-15 21:50:04,663 INFO cli: Command selected: help
 2026-10-15 21:50:06,119 INFO cli: Command selected: exit
 2026-10-15 21:50:06,120 INFO __main__: CLI stopped
+2026-10-15 22:32:34,071 INFO __main__: TasksHere 1.0.1 GUI starting
