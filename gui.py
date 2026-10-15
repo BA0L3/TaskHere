@@ -5,8 +5,10 @@ import os
 from datetime import datetime
 from typing import Any
 
+from config import METADATA
+
 from PySide6.QtCore import QDate, QDateTime, Qt, QTimer
-from PySide6.QtGui import QColor, QTextCharFormat
+from PySide6.QtGui import QColor, QTextCharFormat, QIcon
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -37,6 +39,7 @@ from PySide6.QtWidgets import (
 from Database import DataBase
 from Settings import Settings
 from i18n import colors, score_label, text
+from config import ICON_FILE
 
 
 logger = logging.getLogger(__name__)
@@ -72,6 +75,7 @@ class TaskDialog(QDialog):
         form.addRow(text("task_name", language), self.name_input)
 
         self.score_inputs: list[QDoubleSpinBox] = []
+        self.setWindowIcon(QIcon(str(ICON_FILE)))
         for label in weights_name[:10]:
             score = QDoubleSpinBox()
             score.setRange(1.0, 5.0)
@@ -194,6 +198,7 @@ class SettingsDialog(QDialog):
         self.setWindowTitle(text("settings", self.language))
         self.setMinimumWidth(420)
 
+        self.setWindowIcon(QIcon(str(ICON_FILE)))
         layout = QVBoxLayout(self)
         form = QFormLayout()
         self.controls: dict[str, QCheckBox | QSpinBox | QComboBox] = {}
@@ -288,10 +293,12 @@ class MainWindow(QMainWindow):
         self.weights_name = weights_name
         self.settings = settings
         self._tasks: dict[str, dict[str, Any]] = {}
-        self.setWindowTitle("TasksHere")
+        self.setWindowTitle(f"TasksHere {METADATA["version"]}")
         self.resize(1100, 720)
         self.setMinimumSize(800, 540)
         self._apply_theme()
+
+        self.setWindowIcon(QIcon(str(ICON_FILE)))
 
         central = QWidget()
         root = QVBoxLayout(central)
@@ -300,10 +307,23 @@ class MainWindow(QMainWindow):
 
         header = QHBoxLayout()
         title_block = QVBoxLayout()
-        title = QLabel("TasksHere")
+        title = QLabel(f"TasksHere {METADATA["version"]}")
         title.setStyleSheet("font-size: 25px; font-weight: 700;")
+
+        self.credit_label = QLabel()
+        self.credit_label.setStyleSheet("""
+            QLabel {
+                color: #7d7c7c;  
+                font-size: 13px;   
+                font-family: "Segoe UI", "Arial", sans-serif;
+            }
+        """)
+
         self.subtitle_label = QLabel()
         title_block.addWidget(title)
+        title_block.setSpacing(3) 
+        title_block.addWidget(self.credit_label)
+        title_block.addSpacing(20)
         title_block.addWidget(self.subtitle_label)
         header.addLayout(title_block)
         header.addStretch()
@@ -367,6 +387,7 @@ class MainWindow(QMainWindow):
         self.timeout_table.cellDoubleClicked.connect(self._edit_task)
         task_layout.addWidget(self.timeout_table, 2)
         splitter.addWidget(task_panel)
+
 
         detail = QFrame()
         detail.setObjectName("card")
@@ -482,6 +503,7 @@ class MainWindow(QMainWindow):
         self.note_label.setText(text("note", language))
         self.edit_button.setText(text("edit", language))
         self.delete_button.setText(text("delete", language))
+        self.credit_label.setText(text("credit", language) + METADATA["credit"])
         self.timeout_title.setText(
             text(
                 "timeout_count",

@@ -84,6 +84,7 @@ TEXTS: dict[str, dict[Language, str]] = {
         "Vie": "Mức chi tiết thông báo",
         "Eng": "Toast detail",
     },
+    "credit": {"Vie": "Được tạo ra & phát triển bởi :", "Eng": "Created & Developed by: "},
     "show_only_tray": {
         "Vie": "Chỉ hiển thị biểu tượng khay hệ thống khi khởi động",
         "Eng": "Show only the system tray icon on startup",

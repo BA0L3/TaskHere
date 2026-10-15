@@ -5,6 +5,9 @@ import sys
 from PySide6.QtCore import QObject, QTimer, Signal
 from PySide6.QtWidgets import QApplication, QMessageBox
 
+import ctypes
+from config import METADATA
+
 from Background import (
     BackgroundRuntime,
     _auto_start_command,
@@ -37,6 +40,9 @@ def main() -> int:
     application = QApplication(sys.argv)
     application.setApplicationName(METADATA["name"])
     application.setStyle("Fusion")
+
+    myappid = f'{METADATA["developer"]}.{METADATA["version"]}.gui.{METADATA["version"]}' 
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
     runtime: BackgroundRuntime | None = None
     startup_warning: str | None = None

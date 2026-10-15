@@ -24,7 +24,7 @@ from windows_toasts import (
 
 from Database import DataBase
 from Settings import Settings
-from config import BASE_DIR, METADATA
+from config import BASE_DIR, METADATA, ICON_FILE
 from i18n import text
 
 
@@ -95,7 +95,10 @@ class TrayIcon:
 
     @staticmethod
     def generate_img() -> Image.Image:
-        return Image.new("RGB", (64, 64), color=(0, 150, 255))
+        try:
+            return Image.open(ICON_FILE)
+        except:
+            return Image.new("RGB", (64, 64), color=(0, 150, 255))
 
     def _show(self, _icon: Any, _item: Any) -> None:
         self._show_callback()

@@ -1,0 +1,11 @@
+{
+    "auto_start": false,
+    "TimeAlertBeforeDeadline": 720,
+    "AutoPrintList": false,
+    "RemindTask": 0,
+    "AutoRefestWeight": 60,
+    "mode": "Dark",
+    "Language": "Eng",
+    "Toast detail": "Simple",
+    "Just Show Only TrayIon": false
+}

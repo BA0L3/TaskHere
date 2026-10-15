@@ -11,6 +11,8 @@ from Database import DataBase
 from Settings import Settings
 from lab import prompt_deadline
 
+from config import METADATA
+
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +45,7 @@ class CLI:
             "settings": self.configure_settings,
             "exit": self.exit_cli,
             "quit": self.exit_cli,
+            "credit": self.credit
         }
 
     def run(self) -> None:
@@ -113,6 +116,13 @@ class CLI:
         self.running = False
         self.stop_event.set()
 
+    def credit(self):
+        print(
+            f"\nCreated & Developed by: {METADATA["credit"]}\n"
+            f"Visit my Github profile at: https://github.com/{METADATA["developer"]}\n\n"
+            )
+
+
     def show_from_tray(self) -> None:
         self.settings.show_console()
         print("\nTasksHere is active in this console. Return here to continue.")
@@ -120,13 +130,14 @@ class CLI:
     def show_help(self) -> None:
         print(
             "\nCommands:\n"
-            "  add     Create a task\n"
-            "  list    Show tasks, sorted by priority\n"
-            "  update  Update a task's scores, deadline, and note\n"
-            "  remove  Delete a task\n"
-            "  settings View or change application settings\n"
-            "  help    Show this help\n"
-            "  exit    Close the CLI"
+            "  add       Create a task\n"
+            "  list      Show tasks, sorted by priority\n"
+            "  update    Update a task's scores, deadline, and note\n"
+            "  remove    Delete a task\n"
+            "  settings  View or change application settings\n"
+            "  help      Show this help\n"
+            "  exit      Close the CLI\n"
+            "  credit    Show credit\n"
         )
 
     def configure_settings(self) -> None:

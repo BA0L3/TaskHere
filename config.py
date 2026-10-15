@@ -20,17 +20,20 @@ def resolve_path(path: str | Path) -> Path:
     return BASE_DIR / resolved_path
 
 
-TASKS_FILE = resolve_path("Tasks.json")
-LOG_DIR = resolve_path("logs")
+TASKS_FILE = resolve_path("Datas//Tasks.json")
+LOG_DIR = resolve_path("Datas//logs")
 LOG_FILE = LOG_DIR / "taskshere.log"
-SETTINGS_FILE = resolve_path("settings.json")
+SETTINGS_FILE = resolve_path("Datas//settings.json")
+ICON_FILE = resolve_path("Datas//TaskHere.ico")
+IMG_FILE = resolve_path("Datas//TaskHere.png")
 
 METADATA = {
     "name": "TasksHere",
-    "version": "0.0.0",
-    "developer": "BA0LE (BA0LE-dev)",
+    "version": "1.0.1",
+    "credit": "BA0L3 (BA0L3-dev or Lê Nguyễn Gia Bảo)",
+    "developer": "BA0L3",
     "os": ["windows10", "windows11"],
-    "UI": "CLI",
+    "UI": ["CLI", "GUI"]
 }
 
 WEIGHTS = [

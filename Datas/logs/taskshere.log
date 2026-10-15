@@ -1,0 +1,86 @@
+2026-10-15 20:46:49,005 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-15 20:48:29,544 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-15 20:48:43,016 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-15 20:54:00,217 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 20:54:11,476 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 20:55:55,984 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 20:56:21,438 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 20:56:31,205 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 20:58:42,950 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 20:59:00,663 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 21:16:09,616 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 21:16:10,065 ERROR __main__: GUI terminated due to an unexpected error
+Traceback (most recent call last):
+  File "D:\Coding_Project\CLI-tools\TasksHere\main_gui.py", line 67, in main
+    window = MainWindow(database, WEIGHTS, settings)
+  File "D:\Coding_Project\CLI-tools\TasksHere\gui.py", line 432, in __init__
+    self._apply_language()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Coding_Project\CLI-tools\TasksHere\gui.py", line 503, in _apply_language
+    self.credit_label.setText(text("credit", language))
+                              ~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Coding_Project\CLI-tools\TasksHere\i18n.py", line 282, in text
+    template = TEXTS[key][selected]
+               ~~~~~^^^^^
+KeyError: 'credit'
+2026-10-15 21:20:28,137 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 21:24:37,272 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 21:26:10,778 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 21:27:42,253 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 21:28:50,826 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 21:29:30,846 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 21:30:46,445 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 21:31:07,778 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 21:32:43,954 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 21:32:58,164 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 21:33:09,008 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 21:33:52,346 INFO Database: Created task 'test'
+2026-10-15 21:34:14,389 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 21:39:01,583 INFO __main__: TasksHere 1.0.0 GUI starting
+2026-10-15 21:40:16,467 INFO __main__: TasksHere 1.0.0 starting
+2026-10-15 21:40:28,505 INFO cli: Command selected: help
+2026-10-15 21:47:38,771 INFO cli: Command selected: exit
+2026-10-15 21:47:38,772 INFO __main__: CLI stopped
+2026-10-15 21:47:41,776 INFO __main__: TasksHere 1.0.0 starting
+2026-10-15 21:47:43,911 INFO cli: Command selected: help
+2026-10-15 21:47:56,362 INFO cli: Command selected: exit
+2026-10-15 21:47:56,363 INFO __main__: CLI stopped
+2026-10-15 21:48:14,184 INFO __main__: TasksHere 1.0.0 starting
+2026-10-15 21:48:15,580 INFO cli: Command selected: help
+2026-10-15 21:48:17,402 INFO cli: Command selected: credit
+2026-10-15 21:48:17,402 ERROR cli: Command 'credit' failed
+Traceback (most recent call last):
+  File "D:\Coding_Project\CLI-tools\TasksHere\cli.py", line 88, in run
+    action()
+    ~~~~~~^^
+  File "D:\Coding_Project\CLI-tools\TasksHere\cli.py", line 121, in credit
+    f"\nCreated & Developed by: {METADATA["credits"]}\n"
+                                 ~~~~~~~~^^^^^^^^^^^
+KeyError: 'credits'
+2026-10-15 21:48:33,712 INFO cli: Command selected: credit
+2026-10-15 21:48:33,713 ERROR cli: Command 'credit' failed
+Traceback (most recent call last):
+  File "D:\Coding_Project\CLI-tools\TasksHere\cli.py", line 88, in run
+    action()
+    ~~~~~~^^
+  File "D:\Coding_Project\CLI-tools\TasksHere\cli.py", line 121, in credit
+    f"\nCreated & Developed by: {METADATA["credit"]}\n"
+                                 ^^^^^^^^^^^^^^^^^^^
+KeyError: 'credits'
+2026-10-15 21:48:53,861 INFO cli: Command selected: credit
+2026-10-15 21:48:53,862 ERROR cli: Command 'credit' failed
+Traceback (most recent call last):
+  File "D:\Coding_Project\CLI-tools\TasksHere\cli.py", line 88, in run
+    action()
+    ~~~~~~^^
+  File "D:\Coding_Project\CLI-tools\TasksHere\cli.py", line 121, in credit
+    f"\nCreated & Developed by: {METADATA["credit"]}\n"
+                                 ^^^^^^^^^^^^^^^^^^^
+KeyError: 'credits'
+2026-10-15 21:49:45,780 INFO cli: Command selected: exit
+2026-10-15 21:49:45,781 INFO __main__: CLI stopped
+2026-10-15 21:49:49,159 INFO __main__: TasksHere 1.0.0 starting
+2026-10-15 21:49:50,964 INFO cli: Command selected: credit
+2026-10-15 21:50:04,663 INFO cli: Command selected: help
+2026-10-15 21:50:06,119 INFO cli: Command selected: exit
+2026-10-15 21:50:06,120 INFO __main__: CLI stopped
