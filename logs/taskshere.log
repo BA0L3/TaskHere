@@ -1,0 +1,139 @@
+2026-10-12 19:29:10,342 INFO __main__: TasksHere 0.0.0 starting
+2026-10-12 19:29:10,344 INFO cli: Command selected: list
+2026-10-12 19:29:10,399 INFO cli: Command selected: exit
+2026-10-12 19:29:10,400 INFO __main__: CLI stopped
+2026-10-12 19:31:31,418 INFO __main__: TasksHere 0.0.0 starting
+2026-10-12 19:31:31,419 INFO cli: Command selected: help
+2026-10-12 19:31:31,422 INFO cli: Command selected: list
+2026-10-12 19:31:31,474 INFO cli: Command selected: exit
+2026-10-12 19:31:31,475 INFO __main__: CLI stopped
+2026-10-12 19:32:52,092 INFO __main__: TasksHere 0.0.0 starting
+2026-10-12 19:32:52,092 INFO cli: Command selected: help
+2026-10-12 19:32:52,099 INFO cli: Command selected: exit
+2026-10-12 19:32:52,099 INFO __main__: CLI stopped
+2026-10-12 19:33:46,392 INFO main: TasksHere 0.0.0 starting
+2026-10-12 19:33:54,254 INFO cli: Command selected: help
+2026-10-12 19:34:09,123 INFO cli: Command selected: add
+2026-10-12 19:34:19,695 INFO cli: Command selected: list
+2026-10-12 19:34:34,562 INFO cli: Command selected: help
+2026-10-12 19:34:43,182 INFO cli: Command selected: remove
+2026-10-12 19:34:46,929 INFO Database: Removed task '1'
+2026-10-12 19:34:49,264 INFO cli: Command selected: remove
+2026-10-12 19:34:55,698 INFO cli: Command selected: exit
+2026-10-12 19:34:55,698 INFO main: CLI stopped
+2026-10-12 21:09:06,714 INFO __main__: TasksHere 0.0.0 starting
+2026-10-12 21:09:08,974 INFO cli: Command selected: help
+2026-10-12 21:09:19,838 INFO cli: Command selected: settings
+2026-10-12 21:14:35,952 INFO cli: Command selected: exit
+2026-10-12 21:14:35,953 INFO __main__: CLI stopped
+2026-10-12 21:14:39,500 INFO __main__: TasksHere 0.0.0 starting
+2026-10-12 21:14:39,507 ERROR __main__: CLI terminated due to an unexpected error
+Traceback (most recent call last):
+  File "D:\Coding_Project\CLI-tools\TasksHere\Settings.py", line 17, in _load_auto_start
+    values = json.load(file)
+  File "D:\apps_datas\python3.13.6\Lib\json\__init__.py", line 293, in load
+    return loads(fp.read(),
+        cls=cls, object_hook=object_hook,
+        parse_float=parse_float, parse_int=parse_int,
+        parse_constant=parse_constant, object_pairs_hook=object_pairs_hook, **kw)
+  File "D:\apps_datas\python3.13.6\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "D:\apps_datas\python3.13.6\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\apps_datas\python3.13.6\Lib\json\decoder.py", line 361, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ~~~~~~~~~~~~~~^^^^^^^^
+json.decoder.JSONDecodeError: Expecting ',' delimiter: line 3 column 5 (char 29)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Coding_Project\CLI-tools\TasksHere\main.py", line 18, in main
+    settings = Settings()
+  File "D:\Coding_Project\CLI-tools\TasksHere\Settings.py", line 12, in __init__
+    self.auto_start = self._load_auto_start()
+                      ~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Coding_Project\CLI-tools\TasksHere\Settings.py", line 21, in _load_auto_start
+    raise ValueError(f"Settings file contains invalid JSON: {self.path}") from exc
+ValueError: Settings file contains invalid JSON: D:\Coding_Project\CLI-tools\TasksHere\settings.json
+2026-10-12 21:19:43,752 INFO __main__: TasksHere 0.0.0 starting
+2026-10-12 21:39:32,815 INFO cli: Command selected: exit
+2026-10-12 21:39:32,816 INFO __main__: CLI stopped
+2026-10-13 10:22:44,209 INFO __main__: TasksHere 0.0.0 starting
+2026-10-13 11:24:34,304 INFO __main__: TasksHere 0.0.0 starting
+2026-10-13 11:24:59,903 INFO cli: Command selected: exit
+2026-10-13 11:24:59,905 INFO __main__: CLI stopped
+2026-10-13 13:42:17,282 INFO __main__: TasksHere 0.0.0 starting
+2026-10-13 13:43:49,563 INFO cli: Command selected: settings
+2026-10-13 13:44:17,841 INFO cli: Command selected: exit
+2026-10-13 13:44:17,842 INFO __main__: CLI stopped
+2026-10-13 16:34:26,038 INFO __main__: TasksHere 0.0.0 starting
+2026-10-13 17:38:45,639 INFO __main__: TasksHere 0.0.0 starting
+2026-10-13 17:39:20,516 INFO cli: Command selected: help
+2026-10-13 17:39:24,620 INFO cli: Command selected: list
+2026-10-13 17:39:30,753 INFO cli: Command selected: remove
+2026-10-13 17:39:36,134 INFO cli: Command selected: remove
+2026-10-13 17:39:39,414 INFO Database: Removed task 'test'
+2026-10-13 17:39:46,275 INFO cli: Command selected: exit
+2026-10-13 17:39:46,276 INFO __main__: CLI stopped
+2026-10-13 20:37:30,222 INFO __main__: TasksHere 0.0.0 starting
+2026-10-13 21:51:17,859 INFO __main__: TasksHere 0.0.0 starting
+2026-10-13 21:51:30,544 INFO __main__: CLI stopped
+2026-10-13 21:59:37,852 INFO __main__: TasksHere 0.0.0 starting
+2026-10-13 22:00:04,696 INFO cli: Command selected: help
+2026-10-13 22:00:08,012 INFO cli: Command selected: add
+2026-10-13 22:45:03,816 INFO __main__: TasksHere 0.0.0 starting
+2026-10-13 22:45:06,781 INFO cli: Command selected: help
+2026-10-13 22:45:09,342 INFO cli: Command selected: add
+2026-10-13 22:45:39,232 INFO cli: Command selected: add
+2026-10-13 22:46:23,026 INFO Database: Created task 'test'
+2026-10-13 22:52:54,552 INFO cli: Command selected: exit
+2026-10-13 22:52:54,558 INFO __main__: CLI stopped
+2026-10-13 22:56:44,729 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-13 22:58:29,250 ERROR gui: Could not update task 'test'
+Traceback (most recent call last):
+  File "D:\Coding_Project\CLI-tools\TasksHere\gui.py", line 476, in _edit_task
+    self.database.update_task(old_name, info, note, new_name=name)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Coding_Project\CLI-tools\TasksHere\Database.py", line 131, in update_task
+    self._validate_future_deadline(new_info)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "D:\Coding_Project\CLI-tools\TasksHere\Database.py", line 207, in _validate_future_deadline
+    raise ValueError("Deadline must be in the future.")
+ValueError: Deadline must be in the future.
+2026-10-13 22:58:59,708 INFO Database: Updated task 'test'
+2026-10-13 23:02:17,173 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-13 23:08:53,227 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-13 23:09:29,978 INFO Database: Updated task 'test'
+2026-10-13 23:27:57,566 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-13 23:28:36,883 INFO Database: Cleared 1 timed-out tasks
+2026-10-13 23:29:06,773 INFO Database: Created task 'test'
+2026-10-13 23:29:18,693 INFO Database: Removed task 'test'
+2026-10-13 23:37:53,179 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-13 23:45:48,490 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-13 23:46:28,018 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-13 23:53:29,299 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-13 23:54:09,728 ERROR gui: Could not create task ''
+Traceback (most recent call last):
+  File "D:\Coding_Project\CLI-tools\TasksHere\gui.py", line 780, in _add_task
+    self.database.new_task(info, name, note)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\Coding_Project\CLI-tools\TasksHere\Database.py", line 99, in new_task
+    raise ValueError("Task name cannot be blank.")
+ValueError: Task name cannot be blank.
+2026-10-13 23:54:45,511 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-13 23:56:30,107 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-13 23:57:04,603 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-13 23:57:58,510 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-14 00:00:47,966 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-14 00:01:45,682 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-14 00:02:35,868 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-14 00:03:13,201 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-14 00:05:45,484 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-14 00:06:10,263 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-14 11:33:04,001 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-14 17:16:37,239 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-14 17:17:38,741 INFO __main__: TasksHere 0.0.0 GUI starting
+2026-10-14 17:18:36,979 INFO Database: Created task 'test'
