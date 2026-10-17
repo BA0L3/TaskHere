@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
-from Database import DataBase
+from Database.Database1 import DataBase
 from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.output import DummyOutput
 

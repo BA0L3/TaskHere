@@ -2,7 +2,6 @@
     {
         "task_name": "test",
         "info": [
-            5.0,
             3.0,
             3.0,
             3.0,
@@ -12,10 +11,16 @@
             3.0,
             3.0,
             3.0,
-            "17/10/2026 21:33:21"
+            3.0,
+            "18/10/2026 23:59:59"
         ],
-        "note": "just a test",
-        "created_at": "15/10/2026 21:33:52",
-        "weight": 5.64134674445856
+        "note": "just a test ',:)",
+        "task_type": "type_2",
+        "created_at": "17/10/2026 21:48:33",
+        "schedule": {
+            "deadline_mode": "specific",
+            "deadline_time": "23:59:59"
+        },
+        "weight": 5.299486777458925
     }
 ]

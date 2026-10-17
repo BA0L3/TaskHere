@@ -1,10 +1,10 @@
 import json
 import tempfile
 import unittest
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from Database import DataBase
+from Database.Database1 import DataBase
 
 
 class DataBaseTests(unittest.TestCase):
@@ -102,6 +102,75 @@ class DataBaseTests(unittest.TestCase):
             [task["task_name"] for task in self.database.get_tasks()],
             ["Active"],
         )
+
+    def test_recurring_task_is_active_only_on_its_scheduled_window(self) -> None:
+        schedule = {
+            "weekday": 0,
+            "deadline_mode": "specific",
+            "deadline_time": "17:30:00",
+        }
+        task = {
+            "task_name": "Weekly",
+            "task_type": "type_3",
+            "schedule": schedule,
+            "info": self.make_info(),
+        }
+
+        self.assertFalse(
+            self.database.is_timed_out(task, datetime(2026, 10, 19, 17, 29, 59))
+        )
+        self.assertTrue(
+            self.database.is_timed_out(task, datetime(2026, 10, 19, 17, 30))
+        )
+        self.assertTrue(
+            self.database.is_timed_out(task, datetime(2026, 10, 20, 12))
+        )
+
+    def test_monthly_and_yearly_schedules_clamp_missing_dates(self) -> None:
+        monthly = DataBase._normalize_schedule(
+            "type_4", {"day": 31, "deadline_mode": "end_of_day"}
+        )
+        yearly = DataBase._normalize_schedule(
+            "type_5",
+            {"month": 2, "day": 29, "deadline_mode": "end_of_day"},
+        )
+
+        self.assertTrue(
+            DataBase._is_scheduled_date("type_4", monthly, date(2026, 4, 30))
+        )
+        self.assertTrue(
+            DataBase._is_scheduled_date("type_5", yearly, date(2025, 2, 28))
+        )
+        self.assertFalse(
+            DataBase._is_scheduled_date("type_5", yearly, date(2025, 3, 1))
+        )
+
+    def test_clearing_timeouts_keeps_recurring_tasks(self) -> None:
+        expired_info = self.make_info()
+        expired_info[10] = (datetime.now() - timedelta(minutes=5)).strftime(
+            DataBase.DATE_FORMAT
+        )
+        expired = {
+            "task_name": "Expired once",
+            "task_type": "type_1",
+            "info": expired_info,
+            "note": "",
+            "created_at": datetime.now().strftime(DataBase.DATE_FORMAT),
+            "weight": 0,
+        }
+        recurring = self.database.new_task(
+            self.make_info(),
+            "Keep recurring",
+            "",
+            "type_2",
+            {"deadline_mode": "end_of_day"},
+        )
+        self.database._write_tasks([expired, recurring])
+
+        removed = self.database.clear_timed_out_tasks()
+
+        self.assertEqual(removed, ["Expired once"])
+        self.assertIsNotNone(self.database.get_task("Keep recurring"))
 
     def test_reads_existing_task_name_and_name_fields(self) -> None:
         tasks = [

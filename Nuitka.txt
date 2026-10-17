@@ -1,0 +1,19 @@
+.\venv\Scripts\python.exe -m nuitka `                                
+>>   --mode=standalone `                                           
+>>   --enable-plugin=pyside6 `
+>>   --windows-console-mode=disable `
+>>   --windows-icon-from-ico=Datas\TaskHere.ico `
+>>   --include-data-files=Datas\TaskHere.ico=Datas\TaskHere.ico `
+>>   --include-data-files=Datas\TaskHere.png=Datas\TaskHere.png `
+>>   --output-dir=build `
+>>   --experimental=disable-freelist-all `
+>>   main_gui.py
+
+.\venv\Scripts\python.exe -m nuitka `                                
+>>   --mode=standalone `                                                             
+>>   --enable-plugin=pyside6 `
+>>   --windows-icon-from-ico=Datas\TaskHere.ico `
+>>   --include-data-files=Datas\TaskHere.ico=Datas\TaskHere.ico `
+>>   --include-data-files=Datas\TaskHere.png=Datas\TaskHere.png `
+>>   --output-dir=build `                                        
+>>   main.py      

@@ -29,7 +29,7 @@ IMG_FILE = resolve_path("Datas//TaskHere.png")
 
 METADATA = {
     "name": "TasksHere",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "credit": "BA0L3 (BA0L3-dev or Lê Nguyễn Gia Bảo)",
     "developer": "BA0L3",
     "os": ["windows10", "windows11"],

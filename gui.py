@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from config import METADATA
 
-from PySide6.QtCore import QDate, QDateTime, Qt, QTimer
-from PySide6.QtGui import QColor, QTextCharFormat, QIcon
+from PySide6.QtCore import QDate, QDateTime, QTime, Qt, QTimer
+from PySide6.QtGui import QCloseEvent, QColor, QTextCharFormat, QIcon
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -32,6 +32,7 @@ from PySide6.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QTextEdit,
+    QTimeEdit,
     QVBoxLayout,
     QWidget,
 )
@@ -43,6 +44,52 @@ from config import ICON_FILE
 
 
 logger = logging.getLogger(__name__)
+TASK_TYPE_TEXT_KEYS = {
+    "type_1": "type_deadline",
+    "type_2": "type_daily",
+    "type_3": "type_weekly",
+    "type_4": "type_monthly",
+    "type_5": "type_yearly",
+}
+TASK_TYPE_FILTER_TEXT_KEYS = {
+    "type_2": "filter_daily",
+    "type_3": "filter_weekly",
+    "type_4": "filter_monthly",
+    "type_5": "filter_yearly",
+}
+
+
+class PaletteComboBox(QComboBox):
+    def __init__(
+        self,
+        palette: dict[str, str],
+        parent: QWidget | None = None,
+    ) -> None:
+        super().__init__(parent)
+        self._popup_palette = palette.copy()
+        self._configure_popup_view()
+
+    def _configure_popup_view(self) -> None:
+        view = self.view()
+        view.setFrameShape(QFrame.Shape.NoFrame)
+        view.setLineWidth(0)
+        view.setMidLineWidth(0)
+
+    def set_popup_palette(self, palette: dict[str, str]) -> None:
+        self._popup_palette = palette.copy()
+
+    def showPopup(self) -> None:
+        self._configure_popup_view()
+        super().showPopup()
+        popup_frame = self.view().window()
+        popup_frame.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        popup_frame.setStyleSheet(
+            "QFrame {"
+            f"background: {self._popup_palette['surface']};"
+            "border: none;"
+            "}"
+        )
+        popup_frame.update()
 
 
 class TaskDialog(QDialog):
@@ -73,6 +120,14 @@ class TaskDialog(QDialog):
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText(text("name_example", language))
         form.addRow(text("task_name", language), self.name_input)
+
+        self.task_type_input = PaletteComboBox(palette)
+        self.task_type_input.addItem(text("type_deadline", language), "type_1")
+        self.task_type_input.addItem(text("type_daily", language), "type_2")
+        self.task_type_input.addItem(text("type_weekly", language), "type_3")
+        self.task_type_input.addItem(text("type_monthly", language), "type_4")
+        self.task_type_input.addItem(text("type_yearly", language), "type_5")
+        form.addRow(text("task_type", language), self.task_type_input)
 
         self.score_inputs: list[QDoubleSpinBox] = []
         self.setWindowIcon(QIcon(str(ICON_FILE)))
@@ -132,6 +187,56 @@ class TaskDialog(QDialog):
             palette["weekend"],
         )
         form.addRow(text("deadline_label", language), self.deadline_input)
+        self.schedule_mode_input = PaletteComboBox(palette)
+        self.schedule_mode_input.addItem(text("end_of_day", language), "end_of_day")
+        self.schedule_mode_input.addItem(text("specific_time", language), "specific")
+        form.addRow(text("deadline_mode", language), self.schedule_mode_input)
+        self.schedule_time_input = QTimeEdit(QTime(23, 59, 59))
+        self.schedule_time_input.setDisplayFormat("HH:mm:ss")
+        form.addRow(text("deadline_time", language), self.schedule_time_input)
+
+        weekdays = (
+            ("weekday_monday", "weekday_tuesday", "weekday_wednesday",
+             "weekday_thursday", "weekday_friday", "weekday_saturday",
+             "weekday_sunday")
+        )
+        self.weekday_input = PaletteComboBox(palette)
+        for weekday, key in enumerate(weekdays):
+            self.weekday_input.addItem(text(key, language), weekday)
+        form.addRow(text("weekday", language), self.weekday_input)
+        self.month_day_input = QSpinBox()
+        self.month_day_input.setRange(1, 31)
+        self.month_day_input.setValue(1)
+        form.addRow(text("month_day", language), self.month_day_input)
+        self.year_date_widget = QWidget()
+        year_date_layout = QHBoxLayout(self.year_date_widget)
+        year_date_layout.setContentsMargins(0, 0, 0, 0)
+        self.year_month_input = PaletteComboBox(palette)
+        for month in range(1, 13):
+            self.year_month_input.addItem(
+                text(f"month_{month}", language), month
+            )
+        self.year_day_input = QSpinBox()
+        self.year_day_input.setRange(1, 31)
+        self.year_day_input.setValue(1)
+        year_date_layout.addWidget(self.year_month_input)
+        year_date_layout.addWidget(self.year_day_input)
+        form.addRow(text("year_date", language), self.year_date_widget)
+        self._schedule_rows = {
+            key: (widget, form.labelForField(widget))
+            for key, widget in {
+                "deadline": self.deadline_input,
+                "mode": self.schedule_mode_input,
+                "time": self.schedule_time_input,
+                "weekday": self.weekday_input,
+                "month": self.month_day_input,
+                "year": self.year_date_widget,
+            }.items()
+        }
+        self.task_type_input.currentIndexChanged.connect(self._update_type_fields)
+        self.schedule_mode_input.currentIndexChanged.connect(
+            self._update_schedule_time
+        )
 
         self.note_input = QTextEdit()
         self.note_input.setPlaceholderText(text("note_optional", language))
@@ -155,6 +260,10 @@ class TaskDialog(QDialog):
 
         if task is not None:
             self.name_input.setText(DataBase._task_name(task))
+            task_type = task.get("task_type", "type_1")
+            self.task_type_input.setCurrentIndex(
+                max(0, self.task_type_input.findData(task_type))
+            )
             info = task["info"]
             for score, value in zip(self.score_inputs, info[:10]):
                 score.setValue(float(value))
@@ -165,16 +274,95 @@ class TaskDialog(QDialog):
                     "dd/MM/yyyy HH:mm:ss",
                 )
             )
+            schedule = task.get("schedule", {})
+            self.weekday_input.setCurrentIndex(
+                self.weekday_input.findData(schedule.get("weekday", 0))
+            )
+            self.month_day_input.setValue(schedule.get("day", 1))
+            self.year_month_input.setCurrentIndex(
+                self.year_month_input.findData(schedule.get("month", 1))
+            )
+            self.year_day_input.setValue(schedule.get("day", 1))
+            self.schedule_mode_input.setCurrentIndex(
+                max(
+                    0,
+                    self.schedule_mode_input.findData(
+                        schedule.get("deadline_mode", "end_of_day")
+                    ),
+                )
+            )
+            parsed_time = datetime.strptime(
+                schedule.get("deadline_time", "23:59:59"), DataBase.TIME_FORMAT
+            ).time()
+            self.schedule_time_input.setTime(
+                QTime(parsed_time.hour, parsed_time.minute, parsed_time.second)
+            )
             self.note_input.setPlainText(str(task.get("note", "")))
+        self._update_type_fields()
 
-    def get_task_values(self) -> tuple[list[Any], str, str]:
+    def get_task_values(
+        self,
+    ) -> tuple[list[Any], str, str, str, dict[str, Any] | None]:
         scores = [score.value() for score in self.score_inputs]
-        deadline = self.deadline_input.dateTime().toString(
-            "dd/MM/yyyy HH:mm:ss"
+        task_type = str(self.task_type_input.currentData())
+        schedule = None
+        if task_type == "type_1":
+            deadline = self.deadline_input.dateTime().toString(
+                "dd/MM/yyyy HH:mm:ss"
+            )
+        else:
+            deadline_time = (
+                self.schedule_time_input.time().toString("HH:mm:ss")
+                if self.schedule_mode_input.currentData() == "specific"
+                else "23:59:59"
+            )
+            schedule = {
+                "deadline_mode": self.schedule_mode_input.currentData(),
+                "deadline_time": deadline_time,
+            }
+            if task_type == "type_3":
+                schedule["weekday"] = self.weekday_input.currentData()
+            elif task_type == "type_4":
+                schedule["day"] = self.month_day_input.value()
+            elif task_type == "type_5":
+                schedule.update(
+                    month=self.year_month_input.currentData(),
+                    day=self.year_day_input.value(),
+                )
+            deadline = datetime.combine(
+                datetime.now().date() + timedelta(days=1),
+                datetime.strptime(deadline_time, DataBase.TIME_FORMAT).time(),
+            ).strftime(DataBase.DATE_FORMAT)
+        return (
+            scores + [deadline],
+            self.name_input.text().strip(),
+            self.note_input.toPlainText(),
+            task_type,
+            schedule,
         )
-        return scores + [deadline], self.name_input.text().strip(), (
-            self.note_input.toPlainText()
-        )
+
+    def _update_type_fields(self) -> None:
+        task_type = self.task_type_input.currentData()
+        visibility = {
+            "deadline": task_type == "type_1",
+            "mode": task_type != "type_1",
+            "time": (
+                task_type != "type_1"
+                and self.schedule_mode_input.currentData() == "specific"
+            ),
+            "weekday": task_type == "type_3",
+            "month": task_type == "type_4",
+            "year": task_type == "type_5",
+        }
+        for key, visible in visibility.items():
+            widget, label = self._schedule_rows[key]
+            widget.setVisible(visible)
+            if label is not None:
+                label.setVisible(visible)
+
+    def _update_schedule_time(self) -> None:
+        if hasattr(self, "_schedule_rows"):
+            self._update_type_fields()
 
     @staticmethod
     def _style_weekend_dates(
@@ -201,6 +389,7 @@ class SettingsDialog(QDialog):
         self.setWindowIcon(QIcon(str(ICON_FILE)))
         layout = QVBoxLayout(self)
         form = QFormLayout()
+        palette = colors(str(settings.mode))
         self.controls: dict[str, QCheckBox | QSpinBox | QComboBox] = {}
         labels = {
             "auto_start": "auto_start",
@@ -219,7 +408,7 @@ class SettingsDialog(QDialog):
                 control: QCheckBox | QSpinBox | QComboBox = QCheckBox()
                 control.setChecked(value)
             elif isinstance(value, str):
-                control = QComboBox()
+                control = PaletteComboBox(palette)
                 options = Settings.OPTIONS[name]
                 control.addItems(
                     [
@@ -296,7 +485,6 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(f"TasksHere {METADATA["version"]}")
         self.resize(1100, 720)
         self.setMinimumSize(800, 540)
-        self._apply_theme()
 
         self.setWindowIcon(QIcon(str(ICON_FILE)))
 
@@ -358,34 +546,63 @@ class MainWindow(QMainWindow):
 
         self.active_title = QLabel()
         self.active_title.setStyleSheet("font-size:15px; font-weight:700;")
-        task_layout.addWidget(self.active_title)
-        self.task_table = QTableWidget(0, 3)
-        self.task_table.setHorizontalHeaderLabels(["", "", ""])
-        self._configure_task_table(self.task_table, timed_out=False)
+        self.task_type_filter = self._create_type_filter()
+        self.task_type_filter.currentIndexChanged.connect(
+            self._type_filter_changed
+        )
+        active_header = QHBoxLayout()
+        active_header.addWidget(self.active_title)
+        active_header.addStretch()
+        active_header.addWidget(self.task_type_filter)
+        self.task_table = QTableWidget(0, 4)
+        self.task_table.setHorizontalHeaderLabels(["", "", "", ""])
+        self._configure_task_table(self.task_table)
         self.task_table.itemSelectionChanged.connect(
             self._active_selection_changed
         )
         self.task_table.cellDoubleClicked.connect(self._edit_task)
-        task_layout.addWidget(self.task_table, 3)
+        active_panel = QWidget()
+        active_layout = QVBoxLayout(active_panel)
+        active_layout.setContentsMargins(0, 0, 0, 0)
+        active_layout.addLayout(active_header)
+        active_layout.addWidget(self.task_table)
 
         timeout_header = QHBoxLayout()
         self.timeout_title = QLabel()
         self.timeout_title.setStyleSheet("font-size:15px; font-weight:700;")
         timeout_header.addWidget(self.timeout_title)
         timeout_header.addStretch()
+        self.timeout_type_filter = self._create_type_filter()
+        self.timeout_type_filter.currentIndexChanged.connect(
+            self._type_filter_changed
+        )
+        timeout_header.addWidget(self.timeout_type_filter)
         self.clear_button = QPushButton()
         self.clear_button.clicked.connect(self._clear_timed_out_tasks)
         timeout_header.addWidget(self.clear_button)
-        task_layout.addLayout(timeout_header)
 
-        self.timeout_table = QTableWidget(0, 2)
-        self.timeout_table.setHorizontalHeaderLabels(["", ""])
-        self._configure_task_table(self.timeout_table, timed_out=True)
+        self.timeout_table = QTableWidget(0, 4)
+        self.timeout_table.setHorizontalHeaderLabels(["", "", "", ""])
+        self._configure_task_table(self.timeout_table)
         self.timeout_table.itemSelectionChanged.connect(
             self._timeout_selection_changed
         )
         self.timeout_table.cellDoubleClicked.connect(self._edit_task)
-        task_layout.addWidget(self.timeout_table, 2)
+        timeout_panel = QWidget()
+        timeout_layout = QVBoxLayout(timeout_panel)
+        timeout_layout.setContentsMargins(0, 0, 0, 0)
+        timeout_layout.addLayout(timeout_header)
+        timeout_layout.addWidget(self.timeout_table)
+
+        self.task_tables: dict[str, QTableWidget] = {
+            "active": self.task_table,
+            "timed_out": self.timeout_table,
+        }
+        lists_splitter = QSplitter(Qt.Orientation.Vertical)
+        lists_splitter.addWidget(active_panel)
+        lists_splitter.addWidget(timeout_panel)
+        lists_splitter.setSizes([350, 250])
+        task_layout.addWidget(lists_splitter, 1)
         splitter.addWidget(task_panel)
 
 
@@ -432,6 +649,7 @@ class MainWindow(QMainWindow):
         root.addWidget(splitter, 1)
 
         self.setCentralWidget(central)
+        self._apply_theme()
         self._apply_language()
         self._refresh_tasks()
         self.refresh_timer = QTimer(self)
@@ -445,11 +663,16 @@ class MainWindow(QMainWindow):
             f"""
             QMainWindow, QDialog {{ background: {palette['window']}; }}
             QWidget {{ color: {palette['text']}; font-size: 13px; }}
+
+            /* Sửa lại viền card và bảng sang màu palette để giảm tương phản gắt */
             QFrame#card, QTableWidget, QTextEdit, QLineEdit, QSpinBox,
             QDoubleSpinBox, QDateTimeEdit, QListWidget, QComboBox {{
                 background: {palette['surface']};
                 border: 1px solid {palette['border']};
                 border-radius: 8px;
+            }}
+            QFrame#card, QTableWidget {{
+                border: 1px solid {palette['border']};
             }}
             QLineEdit, QSpinBox, QDoubleSpinBox, QDateTimeEdit, QComboBox {{
                 padding: 7px;
@@ -472,28 +695,75 @@ class MainWindow(QMainWindow):
                 color: {palette['muted']}; font-weight: 600;
             }}
             QTableWidget {{ gridline-color: {palette['grid']}; }}
-            QTableWidget::item {{ padding: 7px; }}
+            QTableWidget::item {{
+                padding: 7px; border-bottom: 1px solid {palette['grid']};
+            }}
             QTableWidget::item:selected {{
                 background: {palette['selection']}; color: {palette['text']};
             }}
+            QScrollBar:vertical, QScrollBar:horizontal {{
+                background: {palette['window']};
+                border: 1px solid {palette['border']};
+                border-radius: 5px;
+            }}
+            QScrollBar:vertical {{ width: 12px; margin: 0; }}
+            QScrollBar:horizontal {{ height: 12px; margin: 0; }}
+            QScrollBar::handle:vertical, QScrollBar::handle:horizontal {{
+                background: {palette["scroller"]}; border-radius: 4px; min-height: 24px;
+                min-width: 24px;
+            }}
+            QScrollBar::add-line, QScrollBar::sub-line {{
+                width: 0; height: 0;
+            }}
+            QScrollBar::add-page, QScrollBar::sub-page {{
+                background: {palette['window']};
+            }}
+
             QComboBox::drop-down {{
+                width: 24px;
                 background: {palette['surface']};
                 border-left: 1px solid {palette['border']};
+            }}
+            QComboBox {{
+                padding: 7px;
             }}
             QComboBox QAbstractItemView {{
                 background: {palette['surface']};
                 color: {palette['text']};
+                border: 1px solid {palette['border']};
                 selection-background-color: {palette['selection']};
                 selection-color: {palette['text']};
                 outline: 0;
+                padding: 0;
+            }}
+            QComboBox QAbstractItemView::item {{
+                padding: 6px 10px;
+            }}
+            QComboBox QAbstractItemView::item:selected {{
+                background: {palette['selection']};
+                color: {palette['text']};
             }}
             """
         )
+        for combo in self.findChildren(PaletteComboBox):
+            combo.set_popup_palette(palette)
 
     def _apply_language(self) -> None:
         language = str(self.settings.Language)
         self.subtitle_label.setText(text("window_subtitle", language))
         self.active_title.setText(text("active_tasks", language))
+        for type_filter in (
+            self.task_type_filter,
+            self.timeout_type_filter,
+        ):
+            type_filter.setItemText(0, text("all_types", language))
+            for index, task_type in enumerate(
+                ("type_2", "type_3", "type_4", "type_5"), start=1
+            ):
+                type_filter.setItemText(
+                    index,
+                    text(TASK_TYPE_FILTER_TEXT_KEYS[task_type], language),
+                )
         self.settings_button.setText(text("settings", language))
         self.refresh_button.setText(text("refresh", language))
         self.add_button.setText(text("add_task", language))
@@ -511,27 +781,24 @@ class MainWindow(QMainWindow):
                 count=self.timeout_table.rowCount(),
             )
         )
-        self.clear_button.setText(text("clear", language))
+        self.clear_button.setText(text("clear_deadline_timeouts", language))
         if not self.detail_name.text() or self.detail_name.text() in {
             text("select_task", "Vie"),
             text("select_task", "Eng"),
         }:
             self.detail_name.setText(text("select_task", language))
-        self.task_table.setHorizontalHeaderLabels(
-            [
-                text("task_name", language),
-                text("priority", language),
-                text("deadline", language),
-            ]
-        )
-        self.timeout_table.setHorizontalHeaderLabels(
-            [text("task_name", language), text("deadline", language)]
-        )
+        for table in self.task_tables.values():
+            table.setHorizontalHeaderLabels(
+                [
+                    text("task_name", language),
+                    text("list_type", language),
+                    text("priority", language),
+                    text("deadline", language),
+                ]
+            )
         self._update_summary_labels(0, None)
 
-    def _configure_task_table(
-        self, table: QTableWidget, timed_out: bool
-    ) -> None:
+    def _configure_task_table(self, table: QTableWidget) -> None:
         table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
         table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
@@ -540,8 +807,22 @@ class MainWindow(QMainWindow):
         table.horizontalHeader().setSectionResizeMode(
             0, QHeaderView.ResizeMode.Stretch
         )
-        if not timed_out:
-            table.setColumnWidth(1, 120)
+        table.setColumnWidth(1, 120)
+        table.setColumnWidth(2, 100)
+        table.setColumnWidth(3, 150)
+
+    def _create_type_filter(self) -> QComboBox:
+        type_filter = PaletteComboBox(colors(str(self.settings.mode)))
+        type_filter.addItem(text("all_types", str(self.settings.Language)), "all")
+        for task_type in ("type_2", "type_3", "type_4", "type_5"):
+            type_filter.addItem(
+                text(
+                    TASK_TYPE_FILTER_TEXT_KEYS[task_type],
+                    str(self.settings.Language),
+                ),
+                task_type,
+            )
+        return type_filter
 
     def _update_summary_labels(
         self, task_count: int, top_task: dict[str, Any] | None
@@ -563,7 +844,7 @@ class MainWindow(QMainWindow):
             )
 
     def _selected_task(self) -> dict[str, Any] | None:
-        for table in (self.task_table, self.timeout_table):
+        for table in self.task_tables.values():
             row = table.currentRow()
             if row >= 0:
                 item = table.item(row, 0)
@@ -610,14 +891,19 @@ class MainWindow(QMainWindow):
         self._update_summary_labels(
             len(active_tasks), active_tasks[0] if active_tasks else None
         )
-        for table in (self.task_table, self.timeout_table):
+        for table in self.task_tables.values():
             table.blockSignals(True)
             table.clearContents()
             table.setRowCount(0)
-        self._populate_table(self.task_table, active_tasks, timed_out=False)
-        self._populate_table(self.timeout_table, timed_out_tasks, timed_out=True)
-        self.task_table.blockSignals(False)
-        self.timeout_table.blockSignals(False)
+        self._populate_table(self.task_table, active_tasks)
+        self._populate_table(self.timeout_table, timed_out_tasks)
+        for table in self.task_tables.values():
+            table.blockSignals(False)
+        clearable_count = sum(
+            task.get("task_type", "type_1") == "type_1"
+            for task in timed_out_tasks
+        )
+        self.clear_button.setEnabled(clearable_count > 0)
         self.timeout_title.setText(
             text(
                 "timeout_count",
@@ -628,8 +914,9 @@ class MainWindow(QMainWindow):
 
         if selected_name:
             target = selected_name.casefold()
-            found = self._select_task(self.task_table, target)
-            if not found:
+            self.task_type_filter.setCurrentIndex(0)
+            self.timeout_type_filter.setCurrentIndex(0)
+            if not self._select_task(self.task_table, target):
                 self._select_task(self.timeout_table, target)
         elif self.task_table.rowCount():
             self.task_table.selectRow(0)
@@ -642,7 +929,6 @@ class MainWindow(QMainWindow):
         self,
         table: QTableWidget,
         tasks: list[dict[str, Any]],
-        timed_out: bool,
     ) -> None:
         for task in tasks:
             row = table.rowCount()
@@ -651,15 +937,19 @@ class MainWindow(QMainWindow):
             name_item = QTableWidgetItem(name)
             name_item.setData(Qt.ItemDataRole.UserRole, name)
             table.setItem(row, 0, name_item)
-            if timed_out:
-                table.setItem(row, 1, QTableWidgetItem(str(task["info"][10])))
-            else:
-                table.setItem(
-                    row, 1, QTableWidgetItem(f"{task['weight']:.2f}")
-                )
-                table.setItem(
-                    row, 2, QTableWidgetItem(str(task["info"][10]))
-                )
+            task_type = task.get("task_type", "type_1")
+            table.setItem(
+                row,
+                1,
+                QTableWidgetItem(
+                    text(
+                        TASK_TYPE_TEXT_KEYS[task_type],
+                        str(self.settings.Language),
+                    )
+                ),
+            )
+            table.setItem(row, 2, QTableWidgetItem(f"{task['weight']:.2f}"))
+            table.setItem(row, 3, QTableWidgetItem(str(task["info"][10])))
 
     @staticmethod
     def _select_task(table: QTableWidget, target: str) -> bool:
@@ -676,7 +966,11 @@ class MainWindow(QMainWindow):
 
     def _apply_filter(self, query: str) -> None:
         needle = query.strip().casefold()
-        for table in (self.task_table, self.timeout_table):
+        for table, type_filter in (
+            (self.task_table, self.task_type_filter),
+            (self.timeout_table, self.timeout_type_filter),
+        ):
+            selected_type = type_filter.currentData()
             for row in range(table.rowCount()):
                 name_item = table.item(row, 0)
                 task = (
@@ -697,7 +991,19 @@ class MainWindow(QMainWindow):
                     if task
                     else ""
                 )
-                table.setRowHidden(row, needle not in searchable)
+                matches_type = (
+                    selected_type == "all"
+                    or (
+                        task is not None
+                        and task.get("task_type", "type_1") == selected_type
+                    )
+                )
+                table.setRowHidden(
+                    row, needle not in searchable or not matches_type
+                )
+
+    def _type_filter_changed(self, _index: int) -> None:
+        self._apply_filter(self.search_input.text())
 
     def _show_selection(self) -> None:
         task = self._selected_task()
@@ -717,11 +1023,55 @@ class MainWindow(QMainWindow):
         info = task["info"]
         self.detail_name.setText(name)
         language = str(self.settings.Language)
-        self.detail_meta.setText(
-            f"{text('priority', language)}: {task['weight']:.2f}\n"
-            f"{text('deadline', language)}: {info[10]}\n"
+        task_type = task.get("task_type", "type_1")
+        details = [
+            f"{text('task_type', language)}: "
+            f"{text(TASK_TYPE_TEXT_KEYS[task_type], language)}",
+            f"{text('priority', language)}: {task['weight']:.2f}",
+            f"{text('deadline', language)}: {info[10]}",
+        ]
+        if task_type != "type_1":
+            schedule = task["schedule"]
+            time_label = (
+                text("end_of_day", language)
+                if schedule["deadline_mode"] == "end_of_day"
+                else schedule["deadline_time"]
+            )
+            if task_type == "type_2":
+                key = "schedule_daily"
+                values = {"time": time_label}
+            elif task_type == "type_3":
+                key = "schedule_weekly"
+                weekday_key = (
+                    "weekday_monday",
+                    "weekday_tuesday",
+                    "weekday_wednesday",
+                    "weekday_thursday",
+                    "weekday_friday",
+                    "weekday_saturday",
+                    "weekday_sunday",
+                )[schedule["weekday"]]
+                values = {
+                    "weekday": text(weekday_key, language),
+                    "time": time_label,
+                }
+            elif task_type == "type_4":
+                key = "schedule_monthly"
+                values = {"day": schedule["day"], "time": time_label}
+            else:
+                key = "schedule_yearly"
+                values = {
+                    "month": text(f"month_{schedule['month']}", language),
+                    "day": schedule["day"],
+                    "time": time_label,
+                }
+            details.append(text(key, language, **values))
+        details.append(
             f"{'Tạo lúc' if language == 'Vie' else 'Created'}: "
             f"{task.get('created_at', '—')}"
+        )
+        self.detail_meta.setText(
+            "\n".join(details)
         )
         self.detail_note.setPlainText(str(task.get("note", "")))
         for label, value in zip(self.weights_name[:10], info[:10]):
@@ -732,13 +1082,20 @@ class MainWindow(QMainWindow):
             )
 
     def _active_selection_changed(self) -> None:
-        if self.task_table.currentRow() >= 0:
-            self.timeout_table.clearSelection()
-        self._show_selection()
+        self._clear_other_selections(self.sender())
 
     def _timeout_selection_changed(self) -> None:
-        if self.timeout_table.currentRow() >= 0:
-            self.task_table.clearSelection()
+        self._clear_other_selections(self.timeout_table)
+
+    def _clear_other_selections(self, selected: Any) -> None:
+        if not isinstance(selected, QTableWidget) or selected.currentRow() < 0:
+            self._show_selection()
+            return
+        for table in self.task_tables.values():
+            if table is not selected and table.currentRow() >= 0:
+                table.blockSignals(True)
+                table.clearSelection()
+                table.blockSignals(False)
         self._show_selection()
 
     def _refresh_weights(self) -> None:
@@ -755,13 +1112,17 @@ class MainWindow(QMainWindow):
         self._refresh_tasks()
 
     def _clear_timed_out_tasks(self) -> None:
-        count = self.timeout_table.rowCount()
+        count = sum(
+            task.get("task_type", "type_1") == "type_1"
+            and self.database.is_timed_out(task)
+            for task in self._tasks.values()
+        )
         if not count:
             return
         language = str(self.settings.Language)
         answer = QMessageBox.question(
             self,
-            text("clear", language),
+            text("clear_deadline_timeouts", language),
             text("confirm_clear", language, count=count),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
@@ -797,9 +1158,9 @@ class MainWindow(QMainWindow):
         )
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return
-        info, name, note = dialog.get_task_values()
+        info, name, note, task_type, schedule = dialog.get_task_values()
         try:
-            self.database.new_task(info, name, note)
+            self.database.new_task(info, name, note, task_type, schedule)
         except (OSError, ValueError, KeyError, TypeError) as exc:
             logger.exception("Could not create task %r", name)
             QMessageBox.warning(
@@ -825,9 +1186,16 @@ class MainWindow(QMainWindow):
         )
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return
-        info, name, note = dialog.get_task_values()
+        info, name, note, task_type, schedule = dialog.get_task_values()
         try:
-            self.database.update_task(old_name, info, note, new_name=name)
+            self.database.update_task(
+                old_name,
+                info,
+                note,
+                new_name=name,
+                task_type=task_type,
+                schedule=schedule,
+            )
         except (OSError, ValueError, KeyError, TypeError) as exc:
             logger.exception("Could not update task %r", old_name)
             QMessageBox.warning(
@@ -924,3 +1292,8 @@ class MainWindow(QMainWindow):
                         ),
                     )
         self._refresh_tasks()
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        self.hide()
+        event.ignore()
+        return

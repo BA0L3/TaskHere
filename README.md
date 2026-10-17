@@ -13,10 +13,22 @@ orders tasks by a calculated priority score.
 ## Features
 
 - Create, update, list, and remove tasks.
-- Score each task using ten criteria and set a deadline and optional note.
+- Score each task using ten criteria and add an optional note.
+- Create one-time deadline tasks or recurring daily, weekly, monthly, and yearly
+  tasks with an end-of-day or specific-time deadline.
+- Keep recurring tasks in their own tab while their scheduled window is active;
+  otherwise they remain in the timed-out tab and return automatically next time.
 - Keep tasks sorted from highest to lowest priority.
 - Use reminders, deadline alerts, and a Windows system-tray icon.
 - Choose the interface language and appearance in the application settings. (EngLish and Tiếng Việt are supported))
+
+| Stored type | Task kind |
+| ----------- | --------- |
+| `type_1` | One-time task with a future date and time |
+| `type_2` | Daily recurring task |
+| `type_3` | Weekly recurring task |
+| `type_4` | Monthly recurring task |
+| `type_5` | Yearly recurring task |
 
 ## Getting started
 
@@ -58,9 +70,14 @@ At the `tasks>` prompt, enter one of these commands:
 | `exit` or `quit` | Close the CLI.                                                           |
 
 For each task, rate the first nine criteria from 1 to 5, then provide a Regret
-Score from 1 to 5. Enter a future deadline when prompted. In the GUI, use the
-task controls to add or edit tasks; the score inputs use the same 1-to-5 scale
-and the deadline picker only accepts a date and time.
+Score from 1 to 5. Deadline tasks require a future date and time. Recurring
+tasks ask for a weekday, day of month, or month/day as appropriate. Monthly
+dates beyond a month's length run on its last day; a yearly February 29 task
+runs on February 28 in non-leap years. In the GUI, use the task-type selector
+and schedule controls; all task types share `Datas/Tasks.json`. Completing a
+recurring task from a notification keeps it in the database and suppresses it
+until its next scheduled occurrence. Clearing timed-out tasks only removes
+one-time deadline tasks.
 
 ## Data and settings
 

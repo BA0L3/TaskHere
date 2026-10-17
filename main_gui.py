@@ -48,7 +48,6 @@ def main() -> int:
     startup_warning: str | None = None
     try:
         settings = Settings()
-        settings.hide_console()
         if settings.recovery_message:
             logger.warning("%s", settings.recovery_message)
         if os.name == "nt":

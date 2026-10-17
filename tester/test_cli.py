@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 
-from Database import DataBase
+from Database.Database1 import DataBase
 from Settings import Settings
 from cli import CLI
 from config import WEIGHTS
@@ -44,6 +44,22 @@ class CLITests(unittest.TestCase):
             cli.run()
 
         self.assertIn("Example", output.getvalue())
+
+    def test_cli_can_create_a_daily_recurring_task(self) -> None:
+        answers = ["Daily CLI", "2", "1", *("3" for _ in range(10))]
+        cli = CLI(self.database, WEIGHTS, self.settings)
+
+        with patch("builtins.input", side_effect=answers), patch(
+            "cli.prompt", return_value=""
+        ):
+            cli.add_task()
+
+        task = self.database.get_task("Daily CLI")
+        self.assertIsNotNone(task)
+        if task is None:
+            self.fail("The CLI did not persist the recurring task")
+        self.assertEqual(task["task_type"], "type_2")
+        self.assertEqual(task["schedule"]["deadline_time"], "23:59:59")
 
     def test_settings_command_updates_reminder_interval(self) -> None:
         cli = CLI(self.database, WEIGHTS, self.settings)

@@ -2,6 +2,7 @@ import logging
 import os
 import queue
 import threading
+from datetime import datetime, timedelta
 from typing import Any
 
 from prompt_toolkit import prompt
@@ -15,6 +16,13 @@ from config import METADATA
 
 
 logger = logging.getLogger(__name__)
+TASK_TYPE_LABELS = {
+    "type_1": "Deadline",
+    "type_2": "Daily",
+    "type_3": "Weekly",
+    "type_4": "Monthly",
+    "type_5": "Yearly",
+}
 
 
 class CLI:
@@ -238,8 +246,11 @@ class CLI:
         print()
         for index, task in enumerate(tasks, start=1):
             name = task.get("task_name", task.get("name", "Unnamed task"))
+            task_type = task.get("task_type", "type_1")
+            state = "Time_Outed" if self.db.is_timed_out(task) else "Active"
             print(
-                f"{index}. {name} | priority: {task['weight']:.2f} | "
+                f"{index}. {name} | {TASK_TYPE_LABELS[task_type]} | {state} | "
+                f"priority: {task['weight']:.2f} | "
                 f"deadline: {task['info'][10]}"
             )
             if task.get("note"):
@@ -247,7 +258,7 @@ class CLI:
 
     def _read_task_details(
         self, existing: dict[str, Any] | None = None
-    ) -> tuple[list[Any], str, str] | None:
+    ) -> tuple[list[Any], str, str, str, dict[str, Any] | None] | None:
         name = input("Task name: ").strip()
         if name.casefold() in {"exit", "cancel"}:
             print("Task entry cancelled.")
@@ -258,6 +269,95 @@ class CLI:
         if existing is None and self.db.get_task(name) is not None:
             print(f'A task named "{name}" already exists; use "update" to edit it.')
             return None
+
+        current_type = (
+            existing.get("task_type", "type_1") if existing is not None else "type_1"
+        )
+        print("Task type: 1=deadline, 2=daily, 3=weekly, 4=monthly, 5=yearly")
+        raw_type = input(f"Choose type [{current_type[-1]}]: ").strip()
+        task_type = f"type_{raw_type}" if raw_type else current_type
+        if task_type not in TASK_TYPE_LABELS:
+            print("Choose a task type from 1 to 5.")
+            return None
+
+        old_schedule = existing.get("schedule", {}) if existing else {}
+        schedule: dict[str, Any] | None = None
+        if task_type != "type_1":
+            schedule = {
+                "deadline_mode": old_schedule.get("deadline_mode", "end_of_day"),
+                "deadline_time": old_schedule.get("deadline_time", "23:59:59"),
+            }
+            if task_type == "type_3":
+                default_weekday = old_schedule.get("weekday", 0)
+                weekday = input(
+                    f"Weekday, 1=Mon through 7=Sun [{default_weekday + 1}]: "
+                ).strip()
+                try:
+                    schedule["weekday"] = (
+                        int(weekday) - 1 if weekday else default_weekday
+                    )
+                    if not 0 <= schedule["weekday"] <= 6:
+                        raise ValueError
+                except ValueError:
+                    print("Enter a weekday from 1 (Mon) to 7 (Sun).")
+                    return None
+            elif task_type == "type_4":
+                day = input(
+                    f"Day of month 1-31 [{old_schedule.get('day', 1)}]: "
+                ).strip()
+                try:
+                    schedule["day"] = int(day) if day else old_schedule.get("day", 1)
+                    if not 1 <= schedule["day"] <= 31:
+                        raise ValueError
+                except ValueError:
+                    print("Enter a day from 1 to 31.")
+                    return None
+            elif task_type == "type_5":
+                month = input(
+                    f"Month 1-12 [{old_schedule.get('month', 1)}]: "
+                ).strip()
+                day = input(
+                    f"Day 1-31 [{old_schedule.get('day', 1)}]: "
+                ).strip()
+                try:
+                    schedule["month"] = (
+                        int(month) if month else old_schedule.get("month", 1)
+                    )
+                    schedule["day"] = (
+                        int(day) if day else old_schedule.get("day", 1)
+                    )
+                    datetime(
+                        2000,
+                        schedule["month"],
+                        schedule["day"],
+                    )
+                except ValueError:
+                    print("Enter a valid month and day.")
+                    return None
+
+            default_mode = "1" if schedule["deadline_mode"] == "end_of_day" else "2"
+            mode = input(
+                f"Deadline: 1=end of day, 2=specific time [{default_mode}]: "
+            ).strip() or default_mode
+            if mode not in {"1", "2"}:
+                print("Choose 1 or 2 for the deadline timing.")
+                return None
+            schedule["deadline_mode"] = (
+                "end_of_day" if mode == "1" else "specific"
+            )
+            if mode == "2":
+                default_time = schedule["deadline_time"]
+                deadline_time = input(
+                    f"Deadline time HH:MM:SS [{default_time}]: "
+                ).strip() or default_time
+                try:
+                    datetime.strptime(deadline_time, DataBase.TIME_FORMAT)
+                except ValueError:
+                    print("Enter a time in HH:MM:SS format.")
+                    return None
+                schedule["deadline_time"] = deadline_time
+            else:
+                schedule["deadline_time"] = "23:59:59"
 
         scores: list[float] = []
         for label in self.weights_name[:10]:
@@ -277,21 +377,31 @@ class CLI:
                 scores.append(score)
                 break
 
-        deadline = prompt_deadline(DataBase.DATE_FORMAT)
-        if deadline is None:
-            print("Task entry cancelled.")
-            return None
+        if task_type == "type_1":
+            deadline = prompt_deadline(DataBase.DATE_FORMAT)
+            if deadline is None:
+                print("Task entry cancelled.")
+                return None
+        else:
+            if schedule is None:
+                raise RuntimeError("Recurring task schedule was not initialized.")
+            deadline = (
+                datetime.now().date() + timedelta(days=1)
+            ).strftime("%d/%m/%Y")
+            deadline = (
+                f"{deadline} {schedule['deadline_time']}"
+            )
 
         print('Enter a note; press "Escape" then "Enter" when finished.')
         note = prompt("Note: ", multiline=True)
-        return scores + [deadline], name, note
+        return scores + [deadline], name, note, task_type, schedule
 
     def add_task(self) -> None:
         details = self._read_task_details()
         if details is None:
             return
-        info, name, note = details
-        self.db.new_task(info, name, note)
+        info, name, note, task_type, schedule = details
+        self.db.new_task(info, name, note, task_type, schedule)
         print(f'Task "{name}" added.')
 
     def update_task(self) -> None:
@@ -304,11 +414,18 @@ class CLI:
         details = self._read_task_details(existing=task)
         if details is None:
             return
-        info, new_name, note = details
+        info, new_name, note, task_type, schedule = details
         if new_name.casefold() != name.casefold() and self.db.get_task(new_name):
             print(f'A task named "{new_name}" already exists.')
             return
-        self.db.update_task(name, info, note, new_name=new_name)
+        self.db.update_task(
+            name,
+            info,
+            note,
+            new_name=new_name,
+            task_type=task_type,
+            schedule=schedule,
+        )
         print(f'Task "{new_name}" updated.')
 
     def remove_task(self) -> None:

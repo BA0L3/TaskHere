@@ -7,7 +7,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from Background import BackgroundRuntime, Notificate_Task, TrayIcon
-from Database import DataBase
+from Database.Database1 import DataBase
 from Settings import Settings
 
 
@@ -41,6 +41,7 @@ class BackgroundRuntimeTests(unittest.TestCase):
     def test_zero_deadline_alert_interval_disables_alerts(self) -> None:
         deadline = datetime.now() + timedelta(minutes=1)
         self.database.new_task(self.make_info(deadline), "Soon", "")
+        self.settings.set_values(TimeAlertBeforeDeadline=0)
         runtime = BackgroundRuntime(self.database, self.settings)
 
         with patch("Background.Notify_Task") as notify:
@@ -81,6 +82,31 @@ class BackgroundRuntimeTests(unittest.TestCase):
         action_callback("task_done", None)
         self.assertIsNone(self.database.get_task("Reminder"))
         self.assertEqual(tasks_changed.call_count, 2)
+
+    def test_completing_recurring_task_keeps_it_for_next_occurrence(self) -> None:
+        self.database.new_task(
+            self.make_info(datetime.now() + timedelta(days=1)),
+            "Daily reminder",
+            "",
+            "type_2",
+            {"deadline_mode": "end_of_day"},
+        )
+        changed = Mock()
+        runtime = BackgroundRuntime(
+            self.database,
+            self.settings,
+            tasks_changed_callback=changed,
+        )
+
+        runtime._handle_toast_action("Daily reminder", "task_done", None)
+
+        task = self.database.get_task("Daily reminder")
+        self.assertIsNotNone(task)
+        if task is None:
+            self.fail("Completing a recurring task removed it from the database")
+        self.assertEqual(task["completed_for"], datetime.now().date().isoformat())
+        self.assertTrue(self.database.is_timed_out(task))
+        changed.assert_called_once()
 
     def test_detailed_notification_dispatches_button_action_and_note(self) -> None:
         toaster = Mock()

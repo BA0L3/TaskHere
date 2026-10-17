@@ -88,7 +88,7 @@ class TrayIcon:
         )
         self.tray.title = f"{METADATA['name']}-{METADATA['version']}"
         self.tray.menu = pystray.Menu(
-            pystray.MenuItem("Show", self._show),
+            pystray.MenuItem("Show", self._show, default=True),
             pystray.MenuItem("Hide", self._hide),
             pystray.MenuItem("Exit", self._exit),
         )
@@ -363,7 +363,7 @@ class BackgroundRuntime:
             if action in {"launch", "change_and_launch"}:
                 self.open_task_callback(task_name)
             elif action == "task_done":
-                self.database.remove_task(task_name)
+                self.database.mark_task_done(task_name)
                 self.tasks_changed_callback()
                 logger.info("Task %r marked done from toast", task_name)
             elif action not in {"submit", "change_and_launch", "launch"}:
@@ -384,6 +384,8 @@ class BackgroundRuntime:
         current_task_alerts: dict[str, str] = {}
         for task in self.database.get_tasks():
             name = DataBase._task_name(task)
+            if self.database.is_timed_out(task, current_time):
+                continue
             info = task.get("info")
             if not isinstance(info, list) or len(info) <= 10:
                 logger.warning("Skipping deadline alert for task %r with invalid info", name)

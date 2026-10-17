@@ -85,3 +85,53 @@ KeyError: 'credits'
 2026-10-15 21:50:06,119 INFO cli: Command selected: exit
 2026-10-15 21:50:06,120 INFO __main__: CLI stopped
 2026-10-15 22:32:34,071 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-15 22:39:37,617 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-15 22:43:53,186 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-15 22:44:21,143 ERROR gui: Could not create task 'test'
+Traceback (most recent call last):
+  File "D:\Coding_Project\CLI-tools\TasksHere\gui.py", line 802, in _add_task
+    self.database.new_task(info, name, note)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\Coding_Project\CLI-tools\TasksHere\Database.py", line 108, in new_task
+    raise ValueError(f'A task named "{name}" already exists.')
+ValueError: A task named "test" already exists.
+2026-10-15 23:00:14,141 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 19:52:23,930 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 21:22:10,736 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 21:23:42,065 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 21:26:19,846 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 21:26:38,884 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 21:46:26,449 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 21:47:00,560 INFO Database.Database1: Cleared 1 timed-out tasks
+2026-10-17 21:48:33,296 INFO Database.Database1: Created task 'test'
+2026-10-17 21:49:26,544 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 21:51:02,098 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 21:54:44,135 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 21:55:30,881 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 21:56:43,673 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 21:57:18,820 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 22:00:10,376 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 22:00:21,850 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 22:01:43,486 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 22:03:14,696 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 22:03:14,760 ERROR __main__: GUI terminated due to an unexpected error
+Traceback (most recent call last):
+  File "D:\Coding_Project\CLI-tools\TasksHere\main_gui.py", line 66, in main
+    window = MainWindow(database, WEIGHTS, settings)
+  File "D:\Coding_Project\CLI-tools\TasksHere\gui.py", line 454, in __init__
+    self._apply_theme()
+    ~~~~~~~~~~~~~~~~~^^
+  File "D:\Coding_Project\CLI-tools\TasksHere\gui.py", line 675, in _apply_theme
+    background: {palette[""]}; border-radius: 4px; min-height: 24px;
+                 ~~~~~~~^^^^
+KeyError: ''
+2026-10-17 22:03:37,132 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 22:06:46,637 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 22:13:53,855 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 22:18:56,314 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 22:25:45,127 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 22:37:19,806 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 22:42:31,598 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 22:42:40,296 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 22:44:06,496 INFO __main__: TasksHere 1.0.1 GUI starting
+2026-10-17 22:46:54,691 INFO __main__: TasksHere 1.0.1 GUI starting
